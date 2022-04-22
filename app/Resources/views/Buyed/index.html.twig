@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Kupione aukcje</h1>
+    {# pass a string argument to get only the messages of that type #}
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success" role="alert">
+            <strong>Success!</strong>  {{ message }}
+        </div>
+    {% endfor %}
+
+    {# pass a string argument to get only the messages of that type #}
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-warning" role="alert">
+            <strong>Warning!</strong>  {{ message }}
+        </div>
+    {% endfor %}
+
+    {% for auction in auctions %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+            {% if auction.brochure %}
+                <img src="{{ asset('uploads/brochures/' ~ auction.brochure) }}" class="img-thumbnail" width="100" height="100"/>
+            {% endif %}
+                <h4><a href="{{ url("my_auction_details", {"id": auction.id}) }}">{{ auction.title }}</a></h4>
+            </div>
+            <div class="panel-body">
+                <p>{{ auction.description }}</p>
+            </div>
+
+            <!-- List group -->
+            <ul class="list-group">
+                <li class="list-group-item">Cena: {{ auction.price }} zł</li>
+                <li class="list-group-item">Cena wywoławcza: {{ auction.startingPrice }} zł</li>
+                <li class="list-group-item">Kupiono za: {{ auction.getLastOffer.price }} zł</li>
+                <li class="list-group-item">Właściciel aukcji: {{ auction.owner.username }}, email: {{ auction.owner.email }} </li>
+                {% if auction.status != 'payment' %}
+                    <li class="list-group-item">Status płatności: NIEOPŁACONA</li>
+                    <li class="list-group-item"><a href="{{ url("payment_register", {"id": auction.id}) }}">Opłać</a></li>
+                {% else %}
+                    <li class="list-group-item">Status płatności: OPŁACONA </li>
+                {% endif %}
+                <li class="list-group-item">Aukcja zakończona {{ auction.expiresAt | date("Y-m-d H:i:s") }}</li>
+            </ul>
+        </div>
+    {% else %}
+        <div class="panel panel-warning">
+            <div class="panel-body">
+                <h3>Niestety nie masz kupionej / wylicytowanej aukcji.</h3>
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}

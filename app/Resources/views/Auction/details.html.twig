@@ -1,0 +1,119 @@
+{% extends "base.html.twig" %}
+
+{% block body %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4>{{ auction.title }}</h4>
+        </div>
+        <div class="panel-body">
+            <p>{{ auction.description }}</p>
+        </div>
+
+        <!-- List group -->
+        <ul class="list-group">
+            <li class="list-group-item">Cena: {{ auction.price }} zł</li>
+            <li class="list-group-item">Cena wywoławcza: {{ auction.startingPrice }} zł</li>
+            <li class="list-group-item">Czas do zakończenia: <span id="czas">{{ auction.expiresAt | expireDate }}</span> ({{ auction.expiresAt | date("Y-m-d H:i:s") }})</li>
+            {% if auction.brochure %}
+                <img src="{{ asset('uploads/brochures/' ~ auction.brochure) }}" width="400" height="300"/>
+            {% else %}
+                <li class="list-group-item"><p><b>Brak zdjęcia</b></p></li>
+            {% endif %}
+        </ul>
+    </div>
+
+            {% if is_granted("ROLE_USER") and app.user.id != auction.owner.id %}
+        <div id="forms" class="panel panel-success">
+            <div class="panel-body">
+                {{ form_start(buyForm, {"attr": {"class": "pull-left", "style": "padding-right: 10px"}}) }}
+                    {{ form_widget(buyForm.submit, {"attr": {"class": "btn-success"}}) }}
+                    {{ form_rest(buyForm) }}
+                {{ form_end(buyForm) }}
+
+            <div class="input-group">
+                {{ form_start(bidForm, {"attr": {"novalidate": "novalidate", "class": "pull-left"}}) }}
+                    <div class="input-group">
+                        {{ form_widget(bidForm.price) }}
+                        <span class="input-group-btn">
+                            {{ form_widget(bidForm.submit) }}
+                        </span>
+                    </div>
+                {{ form_rest(bidForm) }}
+                {{ form_end(bidForm) }}
+            </div>
+
+            <div class="clearfix"></div>
+            </div>
+        </div>
+    {% endif %}
+
+    <a class="btn btn-default" href="{{ url('auction_index') }}">Powrót</a>
+
+    {% if not is_granted("ROLE_USER") %}
+        Żeby kupować musisz się zalogować
+    {% endif %}
+        
+    <br><br><br>
+    
+    <div class="panel panel-default">
+        <h3 class="text-center">Oferty kupna</h3>
+    </div>
+    {% if auction.offers | length > 0 %}
+        <table class="table text-center mt-2">
+            <thead>
+                <th class="text-center">Użytkownik</th>
+                <th class="text-center">Oferta</th>
+                <th class="text-center">Data</th>
+            </thead>
+            <tbody>
+                {% for offer in auction.offers %}
+                <tr>
+                    <td>{{offer.owner.username}}</td>
+                    <td>{{offer.price}} (zł)</td>
+                    <td>{{ offer.createdAt | date("Y-m-d H:i:s") }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <h4 class="text-center">Nikt jeszcze nie licytuje tego przedmiotu.</h4>
+    {% endif %}
+    
+{#    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3>Oferty Kupna</h3>
+        </div>
+        <ul class="list-group">
+            {% for offer in auction.offers %}
+                <li class="list-group-item">Oferta {{ offer.price }} zł, złożona przez {{offer.owner.username}} w dniu {{ offer.createdAt | date("Y-m-d H:i:s") }}</li>
+            {% else %}
+                <h5>Nikt jeszcze nie licytuje tego przedmiotu</h5>
+            {% endfor %}
+        </ul>
+    </div>#}
+
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    
+    var endDateSeconds = new Date('{{ auction.expiresAt | date("Y-m-d H:i:s")}}').getTime();
+    var timer = setInterval(myTimer, 1000);
+    
+    function myTimer(){
+        if( new Date().getTime() > endDateSeconds){
+            var xmlhttp = new XMLHttpRequest();
+            
+            xmlhttp.onreadystatechange = function(){
+                if(this.readyState == 4 && this.status == 200){
+                    document.getElementById("czas").innerHTML = "ZAKOŃCZONA";
+                    document.getElementById("forms").style.display = "none";
+                    clearInterval(timer);
+                }
+            };
+            xmlhttp.open("GET", '{{ url("auction_elapsed", {"id":auction.id}) }}', true);
+            xmlhttp.send();
+        }
+    }
+</script>
+{% endblock %}

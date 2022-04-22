@@ -1,0 +1,79 @@
+{% extends "base.html.twig" %}
+
+{% block body %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4>{{ auction.title }}</h4>
+        </div>
+        <div class="panel-body">
+            <p>{{ auction.description }}</p>
+        </div>
+
+
+        <!-- List group -->
+        <ul class="list-group">
+            <li class="list-group-item">Cena: {{ auction.price }} zł</li>
+            <li class="list-group-item">Cena wywoławcza: {{ auction.startingPrice }} zł</li>
+            {% if auction.status =='active' %}
+                <li class="list-group-item">Czas do zakończenia: {{ auction.expiresAt | expireDate }}</li>
+            {% else %}
+                <li class="list-group-item">Aukcja zakończona {{ auction.expiresAt | date("Y-m-d H:i:s") }}</li>
+            {% endif %}
+
+            {% if auction.brochure %}
+                <img src="{{ asset('uploads/brochures/' ~ auction.brochure) }}" width="400" height="300"/>
+            {% else %}
+                <li class="list-group-item"><p><b>Brak zdjęcia</b></p></li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <a class="btn btn-default pull-left" href="{{ url('auction_index') }}">Powrót</a>
+    <a class="btn btn-info pull-left" href="{{ url("my_auction_edit", {"id": auction.id}) }}">Edytuj</a>
+
+    {{ form_start(deleteForm, {"attr": {"class": "pull-left"}}) }}
+        {{ form_widget(deleteForm.submit, {"attr": {"class": "btn-danger"}}) }}
+        {{ form_rest(deleteForm) }}
+    {{ form_end(deleteForm) }}
+
+    {{ form_start(finishForm, {"attr": {"class": "pull-left"}}) }}
+        {{ form_widget(finishForm.submit, {"attr": {"class": "btn-warning"}}) }}
+        {{ form_rest(finishForm) }}
+    {{ form_end(finishForm) }}
+
+    <div class="clearfix"></div>
+    
+    <br><br><br>
+    
+    <div class="panel panel-default">
+        <h3 class="text-center">Oferty kupna</h3>
+    </div>
+    {% if auction.offers | length > 0 %}
+        <table class="table text-center mt-2">
+            <thead>
+                <th class="text-center">Użytkownik</th>
+                <th class="text-center">Oferta</th>
+                <th class="text-center">Data</th>
+            </thead>
+            <tbody>
+                {% for offer in auction.offers %}
+                <tr>
+                    <td>{{offer.owner.username}}</td>
+                    <td>{{offer.price}} (zł)</td>
+                    <td>{{ offer.createdAt | date("Y-m-d H:i:s") }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <h4 class="text-center">Nikt jeszcze nie licytuje tego przedmiotu.</h4>
+    {% endif %}   
+    
+{#    <div class="panel panel-default">
+        <ul class="list-group">
+            {% for offer in auction.offers %}
+                <li class="list-group-item">Oferta {{ offer.price }} zł, złożona {{ offer.createdAt | date("Y-m-d H:i:s") }}</li>
+            {% endfor %}
+        </ul>
+    </div>#}
+{% endblock %}

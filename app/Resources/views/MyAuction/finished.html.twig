@@ -1,0 +1,28 @@
+{% extends "base.html.twig" %}
+
+{% block body %}
+    <div class="panel panel-success">
+        <div class="panel-heading">
+            <h4>{{ auction.title }}</h4>
+        </div>
+        <div class="panel-body">
+            <p>{{ auction.description }}</p>
+        </div>
+
+        <!-- List group -->
+        <ul class="list-group">
+            <li class="list-group-item">Cena: {{ auction.price }} zł</li>
+            <li class="list-group-item">Cena wywoławcza: {{ auction.startingPrice }} zł</li>
+            <li class="list-group-item">Aukcja zakończona {{ auction.expiresAt | date("Y-m-d H:i:s") }}</li>
+            {% if auction.brochure %}
+                <img src="{{ asset('uploads/brochures/' ~ auction.brochure) }}" width="400" height="300"/>
+            {% else %}
+                <li class="list-group-item"><p><b>Brak zdjęcia</b></p></li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <a class="btn btn-default pull-left" href="{{ url('auction_index') }}">Powrót</a>
+
+    <div class="clearfix"></div>
+{% endblock %}

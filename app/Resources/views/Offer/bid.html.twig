@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Licytacje</h1>
+
+    {% for auction in auctions %}
+        <div class="panel {{ auctionStyle(auction.expiresAt) }}">
+            <div class="panel-heading">
+            {% if auction.brochure %}
+                <img src="{{ asset('uploads/brochures/' ~ auction.brochure) }}" class="img-thumbnail" width="100" height="100"/>
+            {% endif %}
+                <h4><a href="{{ url("auction_details", {"id": auction.id}) }}">{{ auction.title }}</a></h4>
+            </div>
+            <div class="panel-body">
+                <p>{{ auction.description }}</p>
+            </div>
+
+            <!-- List group -->
+            <ul class="list-group">
+                <li class="list-group-item">Cena: {{ auction.price }} zł</li>
+                <li class="list-group-item">Cena wywoławcza: {{ auction.startingPrice }} zł</li>
+
+                {% if date(auction.expiresAt) > date('-1days', 'Europe/Paris') %}
+                    <li class="list-group-item">Aukcja kończy się {{ auction.expiresAt | expireDate }} ({{ auction.expiresAt | date("Y-m-d H:i:s") }})</li>
+                {% else %}
+                    <li class="list-group-item">Aukcja zakończona {{ auction.expiresAt | date("Y-m-d H:i:s") }}</li>
+                {% endif %}
+
+            </ul>
+        </div>
+    {% else %}
+        <div class="panel panel-warning">
+            <div class="panel-body">
+                <h3>Aktualnie nie licytujesz żadnej aukcji.</h3>
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}

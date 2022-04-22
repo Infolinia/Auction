@@ -1,0 +1,84 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Lista aukcji</h1>
+        
+    {% for auction in auctions %}
+        <div class="panel {{ auctionStyle(auction.expiresAt) }}">
+            <div class="panel-heading">
+                <h4><a href="{{ url("auction_details", {"id": auction.id}) }}">{{ auction.title }}</a></h4>
+            </div>
+            
+            {% if auction.brochure %}
+                <div class="row">
+                    <div class="col-sm-3 col-md-3">
+                        <img src="{{ asset('uploads/brochures/' ~ auction.brochure) }}" class="img-thumbnail"/>
+                    </div>
+                    
+                    <div class="col-sm-9 col-md-9">
+                        <ul class="list-group">
+                            <li class="list-group-item"><p>{{ auction.description }}</p></li>
+                            <li class="list-group-item">Cena: {{ auction.price }} zł</li>
+                            <li class="list-group-item">Cena wywoławcza: {{ auction.startingPrice }} zł</li>
+                            <li class="list-group-item">Czas do zakończenia: <span id="{{loop.index0}}">{{ auction.expiresAt | expireDate }}</span> ({{ auction.expiresAt | date("Y-m-d H:i:s") }})</li>
+                        </ul>
+                    </div>
+                </div>
+            {% else %}
+                <div class="panel-body">
+                        <p>{{ auction.description }}</p>
+                    </div>
+                    <!-- List group -->
+                    <ul class="list-group">
+                        <li class="list-group-item">Cena: {{ auction.price }} zł</li>
+                        <li class="list-group-item">Cena wywoławcza: {{ auction.startingPrice }} zł</li>
+                        <li class="list-group-item">Czas do zakończenia: <span id="{{loop.index0}}">{{ auction.expiresAt | expireDate }}</span> ({{ auction.expiresAt | date("Y-m-d H:i:s") }})</li>
+                    </ul>
+            {% endif %}
+
+        </div>
+    {% else %}
+        <div class="panel panel-warning">
+            <div class="panel-body">
+                <h3>Niestety nie ma żadnej aktywnej aukcji.</h3>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    {% if(auctions | length > 0) %}
+    {
+        var datesExp = [];
+        parsujDatyZakonczenia();
+        var myVar = setInterval(myTimer, 1000);
+        
+        function myTimer(){
+            {% for a in auctions %}
+                if( new Date().getTime() > datesExp[{{ loop.index0 }}])
+                {   
+                    var xmlhttp = new XMLHttpRequest();
+                    xmlhttp.onreadystatechange = function(){
+                        if(this.readyState == 4 && this.status == 200)
+                            document.getElementById('{{loop.index0}}').innerHTML = "ZAKOŃCZONA";
+                    };
+                    xmlhttp.open("GET", '{{ url("auction_elapsed", {"id":auctions[0].id}) }}', true);
+                    xmlhttp.send();
+                }
+            {% else %}
+                clearInterval(myVar);
+            {% endfor %}
+        }
+    }
+    {% endif %}
+
+    function parsujDatyZakonczenia(){
+        {% for a in auctions %}
+            console.log("petla + loopIndex" + {{loop.index0}});
+            datesExp[ {{loop.index0}} ] = new Date('{{ a.expiresAt | date("Y-m-d H:i:s")}}').getTime();
+        {%endfor%}
+    }
+</script>
+{% endblock %}
